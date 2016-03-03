@@ -18,8 +18,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
-import com.mobaires.android.util.ImageUtils;
-
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
 	private static final float MIN_DP = 48;
