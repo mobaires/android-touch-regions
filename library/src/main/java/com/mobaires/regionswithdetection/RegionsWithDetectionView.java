@@ -36,14 +36,12 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		super(context);
 		init();
 		setWillNotDraw(false);
-		// TODO Auto-generated constructor stub
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		init();
 		setWillNotDraw(false);
-		// TODO Auto-generated constructor stub
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs,
@@ -51,7 +49,6 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		super(context, attrs, defStyle);
 		init();
 		setWillNotDraw(false);
-		// TODO Auto-generated constructor stub
 	}
 
 	public abstract Bitmap getWireframe();

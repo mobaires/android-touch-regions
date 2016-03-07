@@ -23,7 +23,6 @@ public class CustomRegionWithDetectionView extends
 	public CustomRegionWithDetectionView(Context context) {
 		super(context);
 		bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.flag2);
-
 	}
 
 	@Override
