@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
-	private static final float MIN_DP = 48;
+	private static final float MIN_DP = 48; // review this (master->branch2)
 	private static float factorEscalaLookupBitmap = 0.1f;
 	private static float factorForScreen = 1.0f; // This thing enlarges or reduces the bitmap!
 	private Bitmap lookupBitmap = Bitmap.createBitmap(300, 300,
