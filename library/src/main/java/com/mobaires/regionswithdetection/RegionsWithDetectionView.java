@@ -22,7 +22,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
 	private static final float MIN_DP = 48;
 	private static float factorEscalaLookupBitmap = 0.1f;
-	private static float factorForScreen = 1.0f;
+	private static float factorForScreen = 1.0f; // This thing enlarges or reduces the bitmap!
 	private Bitmap lookupBitmap = Bitmap.createBitmap(300, 300,
 			Bitmap.Config.ALPHA_8);
 	private float maxWidth = 0.0f;
