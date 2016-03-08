@@ -14,13 +14,25 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.activity_main);
 		CustomRegionWithDetectionView customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
+        customRegionWithDetectionView.setId(R.id.view1);
 		customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		HScroll hScroll =(HScroll)findViewById(R.id.hScroll);
 		hScroll.addView(customRegionWithDetectionView);
-		
+
+        ViewGroup vg = (ViewGroup) findViewById(R.id.bag);
+
+        /*customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
+        customRegionWithDetectionView.setId(R.id.view2);
+        customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        vg.addView(customRegionWithDetectionView);
+
+        customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
+        customRegionWithDetectionView.setId(R.id.view3);
+        customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(500, 300));
+        vg.addView(customRegionWithDetectionView);*/
 	}
 
 	@Override

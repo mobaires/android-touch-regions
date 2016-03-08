@@ -7,7 +7,7 @@
     <com.mobaires.regionswithdetection.VScroll
         android:id="@+id/vScroll"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android_layout_weight="1"
         android:background="#ff7d32">
 
@@ -18,5 +18,12 @@
            android:background="#2e7d32">
         </com.mobaires.regionswithdetection.HScroll>
     </com.mobaires.regionswithdetection.VScroll>
+
+    <LinearLayout android:id="@+id/bag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/vScroll">
+    </LinearLayout>
 
 </RelativeLayout>

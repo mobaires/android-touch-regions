@@ -15,18 +15,27 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
 	private static final float MIN_DP = 48; // review this (master->branch2)
-	private static float factorEscalaLookupBitmap = 0.1f;
-	private static float factorForScreen = 1.0f; // This thing enlarges or reduces the bitmap!
-	private Bitmap lookupBitmap = Bitmap.createBitmap(300, 300,
-			Bitmap.Config.ALPHA_8);
-	private float maxWidth = 0.0f;
-	private float maxHeight = 0.0f;
+	private static float scaleXLookup = 0.1f; // should be the same.. ?
+    private static float scaleYLookup = 0.1f; // should be the same.. ?
+	private static float scaleXShow = 1.5f; // This thing enlarges or reduces the bitmap!
+    private static float scaleYShow = 1.5f; // This thing enlarges or reduces the bitmap!
+	private Bitmap lookupBitmap;// = Bitmap.createBitmap(300, 300,
+	//		Bitmap.Config.ALPHA_8);
+
+	private float maxXOrig = 0.0f;
+	private float maxYOrig = 0.0f;
+    private float maxXShow = 0.0f;
+    private float maxYShow = 0.0f;
+    private float maxXLookup = 0.0f;
+    private float maxYLookup = 0.0f;
+
 	private Collection<PartWithStatus<S>> partsArray = new ArrayList<PartWithStatus<S>>();
 	private Map<Integer, PartWithStatus<S>> partsByColor = new HashMap<Integer, PartWithStatus<S>>();
 
@@ -67,17 +76,14 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		float x = event.getX();
 		float y = event.getY();
 		
-		if ((x < ((1 / factorEscalaLookupBitmap) * factorForScreen * lookupBitmap
-				.getWidth()))
-				&& (y < ((1 / factorEscalaLookupBitmap) * factorForScreen * lookupBitmap
-						.getHeight())) && (x >= 0) && (y >= 0)) {
+		if ( x <= maxXShow && y <= maxYShow && x >= 0 && y >= 0 ) {
 
 			int pathIndex = lookupBitmap.getPixel(
-					(int) ((factorEscalaLookupBitmap / factorForScreen) * x),
-					(int) ((factorEscalaLookupBitmap / factorForScreen) * y));
+					(int) ((scaleXLookup / scaleXShow) * x),
+					(int) ((scaleYLookup / scaleYShow) * y));
 
-			if ((pathIndex != Color.BLACK)
-					&& (partsByColor.containsKey(pathIndex))) {
+			if ((pathIndex != Color.BLACK) && (partsByColor.containsKey(pathIndex))) {
+
 				PartWithStatus<S> partWithStatus = partsByColor
 						.get(pathIndex);
 				int pos = getAvailableStatus().indexOf(
@@ -102,7 +108,16 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-		setMeasuredDimension((int) maxWidth, (int) maxHeight);
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+        Log.d("VIEW", "id(" + getId() + ") "
+                + MeasureSpec.toString(widthMeasureSpec) + " x "
+                + MeasureSpec.toString(heightMeasureSpec));
+
+		setMeasuredDimension((int) maxXShow, (int) maxYShow);
 
 	}
 
@@ -127,8 +142,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		}
 		canvas.drawBitmap(foregroundBitmap, 0, 0, null);
 
-		canvas.save();
-
+    	canvas.save();
 	}
 
 	private void calculateMaxWidthAndHeight() {
@@ -144,24 +158,24 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 						.next();
 				float[] coordinates = coordinatesRegion.getCoordinates();
 				for (int j = 0; j < coordinates.length; j += 2) {
-					if (factorForScreen * coordinates[j] >= maxWidth)
-						maxWidth = coordinates[j] * factorForScreen;
-					if (factorForScreen * coordinates[j + 1] >= maxHeight)
-						maxHeight = coordinates[j + 1] * factorForScreen;
-
+                    maxXOrig = Math.max(coordinates[j], maxXOrig);
+                    maxYOrig = Math.max(coordinates[j+1], maxYOrig);
 				}
 			}
 		}
-
+        maxXLookup = maxXOrig * scaleXLookup;
+        maxYLookup = maxYOrig * scaleYLookup;
+        maxXShow = maxXOrig * scaleXShow;
+        maxYShow = maxYOrig * scaleYShow;
 	}
 
 	private Path generatePath(float[] coordss) {
 		Path path = new Path();
-		path.moveTo(factorForScreen * coordss[0], factorForScreen * coordss[1]);
+		path.moveTo(scaleXShow * coordss[0], scaleYShow * coordss[1]);
 
 		for (int i = 2; i < coordss.length; i += 2) {
 
-			path.lineTo(factorForScreen * coordss[i], factorForScreen
+			path.lineTo(scaleXShow * coordss[i], scaleYShow
 					* coordss[i + 1]);
 
 		}
@@ -172,13 +186,13 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
 	private Path generateLookupBitmapPath(float[] coordss) {
 		Path path = new Path();
-		path.moveTo(coordss[0] * factorEscalaLookupBitmap,
-				factorEscalaLookupBitmap * coordss[1]);
+		path.moveTo(coordss[0] * scaleXLookup,
+				scaleYLookup * coordss[1]);
 
 		for (int i = 2; i < coordss.length; i += 2) {
 
-			path.lineTo(factorEscalaLookupBitmap * coordss[i],
-					factorEscalaLookupBitmap * coordss[i + 1]);
+			path.lineTo(scaleXLookup * coordss[i],
+					scaleYLookup * coordss[i + 1]);
 
 		}
 		path.close();
@@ -190,35 +204,15 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
 		int color = Color.GREEN;
 
-		float minimumPx = PixelConverter.getPx(MIN_DP, this);
-		int screenSize = getResources().getConfiguration().screenLayout
-				& Configuration.SCREENLAYOUT_SIZE_MASK;
-
-		switch (screenSize) {
-		case 4:
-
-			factorForScreen = minimumPx / 20;
-			break;
-		case Configuration.SCREENLAYOUT_SIZE_LARGE:
-			factorForScreen = 1.5f;
-			break;
-		case Configuration.SCREENLAYOUT_SIZE_SMALL:
-			factorForScreen = 0.5f;
-			break;
-		default:
-
-		}
-
-		if ((maxWidth == 0.0f) || (maxHeight == 0.0f)) {
+		if ((maxXShow == 0.0f) || (maxYShow == 0.0f)) {
 			calculateMaxWidthAndHeight();
 		}
 
 		foregroundBitmap = getWireframe();
-		Bitmap auxBitmap = ImageUtils.scaleBitmap(foregroundBitmap,
-				(int) maxWidth, (int) maxHeight);
+		Bitmap auxBitmap = ImageUtils.scaleBitmap(foregroundBitmap, (int) maxXShow, (int) maxYShow);
 		foregroundBitmap = auxBitmap;
 
-		lookupBitmap = Bitmap.createBitmap((int) maxWidth, (int) maxHeight,
+		lookupBitmap = Bitmap.createBitmap((int) (maxXLookup), (int) (maxYLookup),
 				Bitmap.Config.ARGB_8888);
 		lookupBitmap.eraseColor(Color.BLACK);
 
@@ -254,7 +248,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 			}
 
 			partsArray.add(partWithStatus);
-			partsByColor.put(color, partWithStatus);
+            partsByColor.put(color, partWithStatus);
 			color++;
 		}
 
