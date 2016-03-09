@@ -20,14 +20,14 @@ import java.util.Map;
 
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
-	private float scaleXLookup = 0.1f;
+    private float scaleXLookup = 0.1f;
     private float scaleYLookup = 0.1f;
 
-	private float scaleXShow = 1f;
+    private float scaleXShow = 1f;
     private float scaleYShow = 1f;
-	private Bitmap lookupBitmap;
-	private float maxXOrig = 0.0f;
-	private float maxYOrig = 0.0f;
+    private Bitmap lookupBitmap;
+    private float maxXOrig = 0.0f;
+    private float maxYOrig = 0.0f;
     private float maxXShow = 0.0f;
     private float maxYShow = 0.0f;
     private float maxXLookup = 0.0f;
@@ -35,77 +35,77 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
     private float scaleDensityBitmap;
 
-	private Collection<PartWithStatus<S>> partsArray = new ArrayList<>();
-	private SparseArray<PartWithStatus<S>> partsByColor = new SparseArray<>();
+    private Collection<PartWithStatus<S>> partsArray = new ArrayList<>();
+    private SparseArray<PartWithStatus<S>> partsByColor = new SparseArray<>();
 
-	private Bitmap foregroundBitmap = null;
+    private Bitmap foregroundBitmap = null;
 
     Paint lookupPaint = new Paint();
 
-	public RegionsWithDetectionView(Context context) {
-		super(context);
+    public RegionsWithDetectionView(Context context) {
+        super(context);
         init();
-		setWillNotDraw(false);
-	}
+        setWillNotDraw(false);
+    }
 
-	public RegionsWithDetectionView(Context context, AttributeSet attrs) {
-		super(context, attrs);
+    public RegionsWithDetectionView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         init();
-		setWillNotDraw(false);
-	}
+        setWillNotDraw(false);
+    }
 
-	public RegionsWithDetectionView(Context context, AttributeSet attrs,
-			int defStyle) {
-		super(context, attrs, defStyle);
+    public RegionsWithDetectionView(Context context, AttributeSet attrs,
+            int defStyle) {
+        super(context, attrs, defStyle);
         init();
-		setWillNotDraw(false);
-	}
+        setWillNotDraw(false);
+    }
 
     private void init() {
         lookupPaint.setAntiAlias(false);
         lookupPaint.setStyle(Style.FILL);
     }
 
-	public abstract Bitmap getWireframe();
+    public abstract Bitmap getWireframe();
 
-	public abstract Map<PartWithStatus<S>, Collection<CoordinatesRegion>> getRegions();
+    public abstract Map<PartWithStatus<S>, Collection<CoordinatesRegion>> getRegions();
 
-	public abstract ArrayList<S> getAvailableStatus();
+    public abstract ArrayList<S> getAvailableStatus();
 
-	public boolean onTouchEvent(MotionEvent event) {
-		if (event.getAction() != MotionEvent.ACTION_DOWN) {
-			return false;
-		}
-		// Let the GestureDetector interpret this event
-		float x = event.getX();
-		float y = event.getY();
-		
-		if ( x <= maxXShow && y <= maxYShow && x >= 0 && y >= 0 ) {
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() != MotionEvent.ACTION_DOWN) {
+            return false;
+        }
+        // Let the GestureDetector interpret this event
+        float x = event.getX();
+        float y = event.getY();
+
+        if ( x <= maxXShow && y <= maxYShow && x >= 0 && y >= 0 ) {
 
             int pathIndex = lookupBitmap.getPixel(
                     (int) (x * scaleXLookup),
                     (int) (y * scaleYLookup));
 
-			if ((pathIndex != Color.BLACK) && (partsByColor.get(pathIndex)!=null)) {
-				PartWithStatus<S> partWithStatus = partsByColor.get(pathIndex);
-				int pos = getAvailableStatus().indexOf(
-						partWithStatus.getStatus());
-				pos = (pos + 1) % getAvailableStatus().size();
-				partWithStatus.setStatus(getAvailableStatus().get(pos));
-			}
-			invalidate();
-		}
-		return false;
-	}
+            if ((pathIndex != Color.BLACK) && (partsByColor.get(pathIndex)!=null)) {
+                PartWithStatus<S> partWithStatus = partsByColor.get(pathIndex);
+                int pos = getAvailableStatus().indexOf(
+                        partWithStatus.getStatus());
+                pos = (pos + 1) % getAvailableStatus().size();
+                partWithStatus.setStatus(getAvailableStatus().get(pos));
+            }
+            invalidate();
+        }
+        return false;
+    }
 
-	@Override
-	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
 
-	}
+    }
 
-	@Override
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -118,7 +118,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         foregroundBitmap = getWireframe();
 
         if (widthMode == MeasureSpec.AT_MOST) {
-			// Considering AT_MOST as EXACTLY
+            // Considering AT_MOST as EXACTLY
             widthMeasured = widthSize;
         } else if (widthMode == MeasureSpec.EXACTLY) {
             widthMeasured = widthSize;
@@ -145,7 +145,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
                 + MeasureSpec.toString(heightMeasureSpec));
 
         if ((maxXShow == 0.0f) || (maxYShow == 0.0f)) {
-        	calculateMaxWidthAndHeight();
+            calculateMaxWidthAndHeight();
         }
 
         lookupBitmap = Bitmap.createBitmap((int) (maxXLookup), (int) (maxYLookup),
@@ -176,22 +176,22 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
             partsByColor.put(color, partWithStatus);
             color++;
         }
-		setMeasuredDimension(widthMeasured, heightMeasured);
-	}
+        setMeasuredDimension(widthMeasured, heightMeasured);
+    }
 
-	@Override
-	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
         for (PartWithStatus<S> partWithStatus: partsArray) {
             for (Path path: partWithStatus.getPaths()) {
                 canvas.drawPath(path, partWithStatus.getPaint());
             }
         }
-		canvas.drawBitmap(foregroundBitmap, 0, 0, null);
-    	canvas.save();
-	}
+        canvas.drawBitmap(foregroundBitmap, 0, 0, null);
+        canvas.save();
+    }
 
-	private void calculateMaxWidthAndHeight() {
+    private void calculateMaxWidthAndHeight() {
         for (Collection<CoordinatesRegion> coordinatesRegionCollection: getRegions().values()) {
             for (CoordinatesRegion coordinatesRegion: coordinatesRegionCollection) {
                 float[] coordinates = coordinatesRegion.getCoordinates();
@@ -205,34 +205,34 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         maxYLookup = maxYOrig * scaleDensityBitmap * scaleYShow * scaleYLookup;
         maxXShow = maxXOrig * scaleDensityBitmap * scaleXShow;
         maxYShow = maxYOrig * scaleDensityBitmap * scaleYShow;
-	}
+    }
 
-	private Path generatePath(float[] coordinates) {
-		Path path = new Path();
-		path.moveTo(coordinates[0] * scaleDensityBitmap * scaleXShow,
+    private Path generatePath(float[] coordinates) {
+        Path path = new Path();
+        path.moveTo(coordinates[0] * scaleDensityBitmap * scaleXShow,
                 coordinates[1] * scaleDensityBitmap * scaleYShow);
 
-		for (int i = 2; i < coordinates.length; i += 2) {
-			path.lineTo(coordinates[i] * scaleDensityBitmap * scaleXShow,
+        for (int i = 2; i < coordinates.length; i += 2) {
+            path.lineTo(coordinates[i] * scaleDensityBitmap * scaleXShow,
                     coordinates[i + 1] * scaleDensityBitmap * scaleYShow);
-		}
-		path.close();
+        }
+        path.close();
 
-		return path;
-	}
+        return path;
+    }
 
-	private Path generateLookupBitmapPath(float[] coordinates) {
-		Path path = new Path();
-		path.moveTo(
+    private Path generateLookupBitmapPath(float[] coordinates) {
+        Path path = new Path();
+        path.moveTo(
                 coordinates[0] * scaleDensityBitmap * scaleXShow * scaleXLookup,
-				coordinates[1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
-		for (int i = 2; i < coordinates.length; i += 2) {
-			path.lineTo(
+                coordinates[1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
+        for (int i = 2; i < coordinates.length; i += 2) {
+            path.lineTo(
                     coordinates[i] * scaleDensityBitmap * scaleXShow * scaleXLookup,
-					coordinates[i + 1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
-		}
-		path.close();
-		return path;
-	}
+                    coordinates[i + 1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
+        }
+        path.close();
+        return path;
+    }
 
 }
