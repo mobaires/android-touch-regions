@@ -16,14 +16,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
            android:background="#2e7d32">
+           <FrameLayout
+               android:id="@+id/container"
+               android:layout_width="2000dp"
+               android:layout_height="2000dp">
+           </FrameLayout>
         </com.mobaires.regionswithdetection.HScroll>
     </com.mobaires.regionswithdetection.VScroll>
-
-    <LinearLayout android:id="@+id/bag"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_below="@id/vScroll">
-    </LinearLayout>
 
 </RelativeLayout>

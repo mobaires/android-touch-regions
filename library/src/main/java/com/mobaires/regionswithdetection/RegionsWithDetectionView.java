@@ -15,20 +15,20 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
-	private static final float MIN_DP = 48; // review this (master->branch2)
-	private static float scaleXLookup = 0.1f; // should be the same.. ?
-    private static float scaleYLookup = 0.1f; // should be the same.. ?
-	private static float scaleXShow = 1.5f; // This thing enlarges or reduces the bitmap!
-    private static float scaleYShow = 1.5f; // This thing enlarges or reduces the bitmap!
-	private Bitmap lookupBitmap;// = Bitmap.createBitmap(300, 300,
-	//		Bitmap.Config.ALPHA_8);
+	private float scaleXLookup = 0.1f;
+    private float scaleYLookup = 0.1f;
 
+	private float scaleXShow = 1f;
+    private float scaleYShow = 1f;
+	private Bitmap lookupBitmap;
 	private float maxXOrig = 0.0f;
 	private float maxYOrig = 0.0f;
     private float maxXShow = 0.0f;
@@ -36,27 +36,26 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
     private float maxXLookup = 0.0f;
     private float maxYLookup = 0.0f;
 
+    private float scaleDensityBitmap;
+
 	private Collection<PartWithStatus<S>> partsArray = new ArrayList<PartWithStatus<S>>();
-	private Map<Integer, PartWithStatus<S>> partsByColor = new HashMap<Integer, PartWithStatus<S>>();
+	private SparseArray<PartWithStatus<S>> partsByColor = new SparseArray<PartWithStatus<S>>();
 
 	private Bitmap foregroundBitmap = null;
 
 	public RegionsWithDetectionView(Context context) {
 		super(context);
-		init();
 		setWillNotDraw(false);
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
 		setWillNotDraw(false);
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
-		init();
 		setWillNotDraw(false);
 	}
 
@@ -70,31 +69,24 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		if (event.getAction() != MotionEvent.ACTION_DOWN) {
 			return false;
 		}
-
 		// Let the GestureDetector interpret this event
-
 		float x = event.getX();
 		float y = event.getY();
 		
 		if ( x <= maxXShow && y <= maxYShow && x >= 0 && y >= 0 ) {
 
-			int pathIndex = lookupBitmap.getPixel(
-					(int) ((scaleXLookup / scaleXShow) * x),
-					(int) ((scaleYLookup / scaleYShow) * y));
+            int pathIndex = lookupBitmap.getPixel(
+                    (int) (x * scaleXLookup),
+                    (int) (y * scaleYLookup));
 
-			if ((pathIndex != Color.BLACK) && (partsByColor.containsKey(pathIndex))) {
-
-				PartWithStatus<S> partWithStatus = partsByColor
-						.get(pathIndex);
+			if ((pathIndex != Color.BLACK) && (partsByColor.get(pathIndex)!=null)) {
+				PartWithStatus<S> partWithStatus = partsByColor.get(pathIndex);
 				int pos = getAvailableStatus().indexOf(
 						partWithStatus.getStatus());
 				pos = (pos + 1) % getAvailableStatus().size();
 				partWithStatus.setStatus(getAvailableStatus().get(pos));
-
 			}
-
 			invalidate();
-
 		}
 		return false;
 	}
@@ -113,12 +105,86 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
+        int widthMeasured = 0;
+        int heightMeasured = 0;
+
+        foregroundBitmap = getWireframe();
+
+        if (widthMode == MeasureSpec.AT_MOST) {
+			// Considering AT_MOST as EXACTLY
+            widthMeasured = widthSize;
+        } else if (widthMode == MeasureSpec.EXACTLY) {
+            widthMeasured = widthSize;
+        } else if (widthMode == MeasureSpec.UNSPECIFIED) {
+            widthMeasured = foregroundBitmap.getWidth();
+        }
+        if (heightMode == MeasureSpec.AT_MOST) {
+            heightMeasured = heightSize;
+        } else if (heightMode == MeasureSpec.EXACTLY) {
+            heightMeasured = heightSize;
+        } else if (heightMode == MeasureSpec.UNSPECIFIED) {
+            heightMeasured = foregroundBitmap.getHeight();
+        }
+
+        scaleDensityBitmap = (float) foregroundBitmap.getDensity() / DisplayMetrics.DENSITY_DEFAULT;
+
+        scaleXShow = ((float) widthMeasured) / foregroundBitmap.getWidth();
+        scaleYShow = ((float) heightMeasured) / foregroundBitmap.getHeight();
+
+        Bitmap auxBitmap = ImageUtils.scaleBitmap(foregroundBitmap, widthMeasured, heightMeasured);
+        foregroundBitmap = auxBitmap;
+
         Log.d("VIEW", "id(" + getId() + ") "
                 + MeasureSpec.toString(widthMeasureSpec) + " x "
                 + MeasureSpec.toString(heightMeasureSpec));
 
-		setMeasuredDimension((int) maxXShow, (int) maxYShow);
+        if ((maxXShow == 0.0f) || (maxYShow == 0.0f)) {
+        	calculateMaxWidthAndHeight();
+        }
 
+        lookupBitmap = Bitmap.createBitmap((int) (maxXLookup), (int) (maxYLookup),
+                Bitmap.Config.ARGB_8888);
+        lookupBitmap.eraseColor(Color.BLACK);
+
+        int color = Color.BLUE;
+
+        Paint lookupPaint = new Paint();
+        Canvas lookupCanvas = new Canvas(lookupBitmap);
+        lookupPaint.setAntiAlias(false);
+        lookupPaint.setStyle(Style.FILL);
+
+        Path path = null;
+
+        Map<PartWithStatus<S>, Collection<CoordinatesRegion>> partsMap = getRegions();
+
+        Iterator<PartWithStatus<S>> partsWithStatusIterator = partsMap.keySet()
+                .iterator();
+
+        while (partsWithStatusIterator.hasNext()) {
+
+            PartWithStatus<S> partWithStatus = partsWithStatusIterator.next();
+            Collection<CoordinatesRegion> coordinatesRegion = partsMap
+                    .get(partWithStatus);
+            Iterator<CoordinatesRegion> regionIterator = coordinatesRegion
+                    .iterator();
+
+            while (regionIterator.hasNext()) {
+                CoordinatesRegion coordinateRegion = regionIterator.next();
+                Path bitmapPath = generateLookupBitmapPath(coordinateRegion
+                        .getCoordinates());
+                lookupPaint.setColor(color);
+                lookupCanvas.drawPath(bitmapPath, lookupPaint);
+
+                path = generatePath(coordinateRegion.getCoordinates());
+                partWithStatus.addPath(path);
+            }
+
+            partsArray.add(partWithStatus);
+            partsByColor.put(color, partWithStatus);
+            color++;
+        }
+
+		setMeasuredDimension(widthMeasured, heightMeasured);
 	}
 
 
@@ -163,20 +229,21 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 				}
 			}
 		}
-        maxXLookup = maxXOrig * scaleXLookup;
-        maxYLookup = maxYOrig * scaleYLookup;
-        maxXShow = maxXOrig * scaleXShow;
-        maxYShow = maxYOrig * scaleYShow;
+        maxXLookup = maxXOrig * scaleDensityBitmap * scaleXShow * scaleXLookup;
+        maxYLookup = maxYOrig * scaleDensityBitmap * scaleYShow * scaleYLookup;
+        maxXShow = maxXOrig * scaleDensityBitmap * scaleXShow;
+        maxYShow = maxYOrig * scaleDensityBitmap * scaleYShow;
 	}
 
-	private Path generatePath(float[] coordss) {
+	private Path generatePath(float[] coordinates) {
 		Path path = new Path();
-		path.moveTo(scaleXShow * coordss[0], scaleYShow * coordss[1]);
+		path.moveTo(coordinates[0] * scaleDensityBitmap * scaleXShow,
+                coordinates[1] * scaleDensityBitmap * scaleYShow);
 
-		for (int i = 2; i < coordss.length; i += 2) {
+		for (int i = 2; i < coordinates.length; i += 2) {
 
-			path.lineTo(scaleXShow * coordss[i], scaleYShow
-					* coordss[i + 1]);
+			path.lineTo(coordinates[i] * scaleDensityBitmap * scaleXShow,
+                    coordinates[i + 1] * scaleDensityBitmap * scaleYShow);
 
 		}
 		path.close();
@@ -184,74 +251,18 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 		return path;
 	}
 
-	private Path generateLookupBitmapPath(float[] coordss) {
+	private Path generateLookupBitmapPath(float[] coordinates) {
 		Path path = new Path();
-		path.moveTo(coordss[0] * scaleXLookup,
-				scaleYLookup * coordss[1]);
-
-		for (int i = 2; i < coordss.length; i += 2) {
-
-			path.lineTo(scaleXLookup * coordss[i],
-					scaleYLookup * coordss[i + 1]);
-
+		path.moveTo(
+                coordinates[0] * scaleDensityBitmap * scaleXShow * scaleXLookup,
+				coordinates[1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
+		for (int i = 2; i < coordinates.length; i += 2) {
+			path.lineTo(
+                    coordinates[i] * scaleDensityBitmap * scaleXShow * scaleXLookup,
+					coordinates[i + 1] * scaleDensityBitmap * scaleYShow * scaleYLookup);
 		}
 		path.close();
-
 		return path;
-	}
-
-	private void init() {
-
-		int color = Color.GREEN;
-
-		if ((maxXShow == 0.0f) || (maxYShow == 0.0f)) {
-			calculateMaxWidthAndHeight();
-		}
-
-		foregroundBitmap = getWireframe();
-		Bitmap auxBitmap = ImageUtils.scaleBitmap(foregroundBitmap, (int) maxXShow, (int) maxYShow);
-		foregroundBitmap = auxBitmap;
-
-		lookupBitmap = Bitmap.createBitmap((int) (maxXLookup), (int) (maxYLookup),
-				Bitmap.Config.ARGB_8888);
-		lookupBitmap.eraseColor(Color.BLACK);
-
-		Paint lookupPaint = new Paint();
-		Canvas lookupCanvas = new Canvas(lookupBitmap);
-		lookupPaint.setAntiAlias(false);
-		lookupPaint.setStyle(Style.FILL);
-
-		Path path = null;
-
-		Map<PartWithStatus<S>, Collection<CoordinatesRegion>> partsMap = getRegions();
-
-		Iterator<PartWithStatus<S>> partsWithStatusIterator = partsMap.keySet()
-				.iterator();
-
-		while (partsWithStatusIterator.hasNext()) {
-
-			PartWithStatus<S> partWithStatus = partsWithStatusIterator.next();
-			Collection<CoordinatesRegion> coordinatesRegion = partsMap
-					.get(partWithStatus);
-			Iterator<CoordinatesRegion> regionIterator = coordinatesRegion
-					.iterator();
-
-			while (regionIterator.hasNext()) {
-				CoordinatesRegion coordinateRegion = regionIterator.next();
-				Path bitmapPath = generateLookupBitmapPath(coordinateRegion
-						.getCoordinates());
-				lookupPaint.setColor(color);
-				lookupCanvas.drawPath(bitmapPath, lookupPaint);
-
-				path = generatePath(coordinateRegion.getCoordinates());
-				partWithStatus.addPath(path);
-			}
-
-			partsArray.add(partWithStatus);
-            partsByColor.put(color, partWithStatus);
-			color++;
-		}
-
 	}
 
 }
