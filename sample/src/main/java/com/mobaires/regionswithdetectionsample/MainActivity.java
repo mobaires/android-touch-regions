@@ -19,7 +19,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		CustomRegionWithDetectionView customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
         customRegionWithDetectionView.setId(R.id.view1);
-		customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(500, 500));
+		customRegionWithDetectionView.setLayoutParams(
+				new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 		FrameLayout container = (FrameLayout) findViewById(R.id.container);
 		container.addView(customRegionWithDetectionView);

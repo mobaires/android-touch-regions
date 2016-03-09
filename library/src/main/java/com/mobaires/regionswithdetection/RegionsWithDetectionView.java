@@ -1,13 +1,6 @@
 package com.mobaires.regionswithdetection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -20,6 +13,10 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
@@ -38,26 +35,36 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
 
     private float scaleDensityBitmap;
 
-	private Collection<PartWithStatus<S>> partsArray = new ArrayList<PartWithStatus<S>>();
-	private SparseArray<PartWithStatus<S>> partsByColor = new SparseArray<PartWithStatus<S>>();
+	private Collection<PartWithStatus<S>> partsArray = new ArrayList<>();
+	private SparseArray<PartWithStatus<S>> partsByColor = new SparseArray<>();
 
 	private Bitmap foregroundBitmap = null;
 
+    Paint lookupPaint = new Paint();
+
 	public RegionsWithDetectionView(Context context) {
 		super(context);
+        init();
 		setWillNotDraw(false);
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+        init();
 		setWillNotDraw(false);
 	}
 
 	public RegionsWithDetectionView(Context context, AttributeSet attrs,
 			int defStyle) {
 		super(context, attrs, defStyle);
+        init();
 		setWillNotDraw(false);
 	}
+
+    private void init() {
+        lookupPaint.setAntiAlias(false);
+        lookupPaint.setStyle(Style.FILL);
+    }
 
 	public abstract Bitmap getWireframe();
 
@@ -131,8 +138,7 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         scaleXShow = ((float) widthMeasured) / foregroundBitmap.getWidth();
         scaleYShow = ((float) heightMeasured) / foregroundBitmap.getHeight();
 
-        Bitmap auxBitmap = ImageUtils.scaleBitmap(foregroundBitmap, widthMeasured, heightMeasured);
-        foregroundBitmap = auxBitmap;
+        foregroundBitmap = ImageUtils.scaleBitmap(foregroundBitmap, widthMeasured, heightMeasured);
 
         Log.d("VIEW", "id(" + getId() + ") "
                 + MeasureSpec.toString(widthMeasureSpec) + " x "
@@ -145,32 +151,20 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         lookupBitmap = Bitmap.createBitmap((int) (maxXLookup), (int) (maxYLookup),
                 Bitmap.Config.ARGB_8888);
         lookupBitmap.eraseColor(Color.BLACK);
+        Canvas lookupCanvas = new Canvas(lookupBitmap);
 
         int color = Color.BLUE;
 
-        Paint lookupPaint = new Paint();
-        Canvas lookupCanvas = new Canvas(lookupBitmap);
-        lookupPaint.setAntiAlias(false);
-        lookupPaint.setStyle(Style.FILL);
-
         Path path = null;
+        Path bitmapPath = null;
+        PartWithStatus<S> partWithStatus = null;
 
         Map<PartWithStatus<S>, Collection<CoordinatesRegion>> partsMap = getRegions();
 
-        Iterator<PartWithStatus<S>> partsWithStatusIterator = partsMap.keySet()
-                .iterator();
-
-        while (partsWithStatusIterator.hasNext()) {
-
-            PartWithStatus<S> partWithStatus = partsWithStatusIterator.next();
-            Collection<CoordinatesRegion> coordinatesRegion = partsMap
-                    .get(partWithStatus);
-            Iterator<CoordinatesRegion> regionIterator = coordinatesRegion
-                    .iterator();
-
-            while (regionIterator.hasNext()) {
-                CoordinatesRegion coordinateRegion = regionIterator.next();
-                Path bitmapPath = generateLookupBitmapPath(coordinateRegion
+        for (Map.Entry<PartWithStatus<S>, Collection<CoordinatesRegion>> entry: partsMap.entrySet()) {
+            partWithStatus = entry.getKey();
+            for (CoordinatesRegion coordinateRegion: entry.getValue()) {
+                bitmapPath = generateLookupBitmapPath(coordinateRegion
                         .getCoordinates());
                 lookupPaint.setColor(color);
                 lookupCanvas.drawPath(bitmapPath, lookupPaint);
@@ -178,57 +172,35 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
                 path = generatePath(coordinateRegion.getCoordinates());
                 partWithStatus.addPath(path);
             }
-
             partsArray.add(partWithStatus);
             partsByColor.put(color, partWithStatus);
             color++;
         }
-
 		setMeasuredDimension(widthMeasured, heightMeasured);
 	}
 
-
 	@Override
 	protected void onDraw(Canvas canvas) {
-
 		super.onDraw(canvas);
-
-		Iterator<PartWithStatus<S>> iterator = partsArray.iterator();
-
-		while (iterator.hasNext()) {
-			PartWithStatus<S> partWithStatus = iterator.next();
-			ArrayList<Path> paths = partWithStatus.getPaths();
-			Iterator<Path> iteratorPaths = paths.iterator();
-			while (iteratorPaths.hasNext()) {
-				Path path = iteratorPaths.next();
-				Paint paint = partWithStatus.getPaint();
-				canvas.drawPath(path, paint);
-			}
-
-		}
+        for (PartWithStatus<S> partWithStatus: partsArray) {
+            for (Path path: partWithStatus.getPaths()) {
+                canvas.drawPath(path, partWithStatus.getPaint());
+            }
+        }
 		canvas.drawBitmap(foregroundBitmap, 0, 0, null);
-
     	canvas.save();
 	}
 
 	private void calculateMaxWidthAndHeight() {
-		Iterator<Collection<CoordinatesRegion>> coordinatesRegionsIterator = getRegions()
-				.values().iterator();
-		while (coordinatesRegionsIterator.hasNext()) {
-			Collection<CoordinatesRegion> coordinatesRegionCollection = coordinatesRegionsIterator
-					.next();
-			Iterator<CoordinatesRegion> iteratorCoordinatesRegion = coordinatesRegionCollection
-					.iterator();
-			while (iteratorCoordinatesRegion.hasNext()) {
-				CoordinatesRegion coordinatesRegion = iteratorCoordinatesRegion
-						.next();
-				float[] coordinates = coordinatesRegion.getCoordinates();
-				for (int j = 0; j < coordinates.length; j += 2) {
+        for (Collection<CoordinatesRegion> coordinatesRegionCollection: getRegions().values()) {
+            for (CoordinatesRegion coordinatesRegion: coordinatesRegionCollection) {
+                float[] coordinates = coordinatesRegion.getCoordinates();
+                for (int j = 0; j < coordinates.length; j += 2) {
                     maxXOrig = Math.max(coordinates[j], maxXOrig);
                     maxYOrig = Math.max(coordinates[j+1], maxYOrig);
-				}
-			}
-		}
+                }
+            }
+        }
         maxXLookup = maxXOrig * scaleDensityBitmap * scaleXShow * scaleXLookup;
         maxYLookup = maxYOrig * scaleDensityBitmap * scaleYShow * scaleYLookup;
         maxXShow = maxXOrig * scaleDensityBitmap * scaleXShow;
@@ -241,10 +213,8 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
                 coordinates[1] * scaleDensityBitmap * scaleYShow);
 
 		for (int i = 2; i < coordinates.length; i += 2) {
-
 			path.lineTo(coordinates[i] * scaleDensityBitmap * scaleXShow,
                     coordinates[i + 1] * scaleDensityBitmap * scaleYShow);
-
 		}
 		path.close();
 
