@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/android-touch-regions.iml" filepath="$PROJECT_DIR$/android-touch-regions.iml" />
       <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
       <module fileurl="file://$PROJECT_DIR$/sample/sample.iml" filepath="$PROJECT_DIR$/sample/sample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/westerosmap/westerosmap.iml" filepath="$PROJECT_DIR$/westerosmap/westerosmap.iml" />
     </modules>
   </component>
 </project>

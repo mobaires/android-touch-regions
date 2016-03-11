@@ -9,6 +9,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.mobaires.customviewwithregionsdetect.R;
@@ -22,14 +23,20 @@ public class CustomRegionWithDetectionView extends
 
 	public CustomRegionWithDetectionView(Context context) {
 		super(context);
-		bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.flag2);
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inDensity = DisplayMetrics.DENSITY_DEFAULT;
+		options.inTargetDensity = DisplayMetrics.DENSITY_DEFAULT;
+		bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.flag2, options);
 	}
 
 	@Override
 	public Bitmap getWireframe() {
-		if (bitmap == null)
-			bitmap = BitmapFactory.decodeResource(getResources(),
-					R.drawable.flag2);
+		if (bitmap == null) {
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inDensity = DisplayMetrics.DENSITY_DEFAULT;
+			options.inTargetDensity = DisplayMetrics.DENSITY_DEFAULT;
+			bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.flag2, options);
+		}
 
 		return bitmap;
 	}

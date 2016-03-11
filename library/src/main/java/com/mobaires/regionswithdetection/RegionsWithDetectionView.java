@@ -138,7 +138,9 @@ public abstract class RegionsWithDetectionView<S> extends ViewGroup {
         scaleXShow = ((float) widthMeasured) / foregroundBitmap.getWidth();
         scaleYShow = ((float) heightMeasured) / foregroundBitmap.getHeight();
 
-        foregroundBitmap = ImageUtils.scaleBitmap(foregroundBitmap, widthMeasured, heightMeasured);
+        if (foregroundBitmap.getWidth()!=widthMeasured || foregroundBitmap.getHeight()!=heightMeasured) {
+            foregroundBitmap = ImageUtils.scaleBitmap(foregroundBitmap, widthMeasured, heightMeasured);
+        }
 
         Log.d("VIEW", "id(" + getId() + ") "
                 + MeasureSpec.toString(widthMeasureSpec) + " x "

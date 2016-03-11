@@ -16,21 +16,20 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.activity_main);
-		CustomRegionWithDetectionView customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
+        setContentView(R.layout.activity_main);
+        CustomRegionWithDetectionView customRegionWithDetectionView = new CustomRegionWithDetectionView(this);
         customRegionWithDetectionView.setId(R.id.view1);
-		customRegionWithDetectionView.setLayoutParams(
-				new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        //customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        customRegionWithDetectionView.setLayoutParams(new ViewGroup.LayoutParams(600,600));
 
-		FrameLayout container = (FrameLayout) findViewById(R.id.container);
-		container.addView(customRegionWithDetectionView);
-
+        FrameLayout container = (FrameLayout) findViewById(R.id.container);
+        container.addView(customRegionWithDetectionView);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 
 }
