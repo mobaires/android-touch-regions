@@ -1,2 +1,2 @@
-include ':library', ':westerosmap'
+include ':android-touch-regions-lib', ':westerosmap'
 include ':sample'
