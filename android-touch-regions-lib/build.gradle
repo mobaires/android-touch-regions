@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'android-touch-regions-lib'
+
+    publishedGroupId = 'com.mobaires.regionswithdetection'
+    libraryName = 'android-touch-regions-lib'
+    artifact = 'android-touch-regions-lib'
+
+    libraryDescription = 'Wondered how to make a map where the user could touch different regions and detect those actions? Or maybe a Car wireframe? Body parts or maybe a way to implement a paint for kids app?\n' +
+            '\n' +
+            'android-touch-regions manages touchable and selectable regions.'
+
+    siteUrl = 'https://github.com/Cristo86/android-touch-regions'
+    gitUrl = 'https://github.com/Cristo86/android-touch-regions'
+
+    libraryVersion = '0.1-alpha'
+
+    developerId = 'cristo86'
+    developerName = 'Cristian Duarte'
+    developerEmail = 'cristian.duarte.mb@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        minSdkVersion 8
+        targetSdkVersion 23
+        versionCode 1
+        versionName "0.1-alpha"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:23.1.1'
+    //compile files('libs/mobairesandroid.jar')
+}
+
+apply from: 'https://raw.githubusercontent.com/Cristo86/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/Cristo86/JCenter/master/bintrayv1.gradle'

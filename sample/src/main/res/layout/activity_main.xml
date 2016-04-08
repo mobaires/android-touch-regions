@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <!-- android:fillViewport="true" -->
+	
+    <com.mobaires.regionswithdetection.VScroll
+        android:id="@+id/vScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android_layout_weight="1"
+        android:background="#ff7d32">
+
+       <com.mobaires.regionswithdetection.HScroll
+            android:id="@+id/hScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+           android:background="#2e7d32">
+           <FrameLayout
+               android:id="@+id/container"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content">
+           </FrameLayout>
+        </com.mobaires.regionswithdetection.HScroll>
+    </com.mobaires.regionswithdetection.VScroll>
+
+</RelativeLayout>

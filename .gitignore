@@ -24,3 +24,9 @@ proguard/
 
 # DS STORE MAC
 .DS_Store
+
+# idea stuff
+.idea/misc.xml
+.idea/workspace.xml
+
+.idea/vcs.xml

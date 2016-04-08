@@ -1,0 +1,2 @@
+include ':android-touch-regions-lib', ':westerosmap'
+include ':sample'
